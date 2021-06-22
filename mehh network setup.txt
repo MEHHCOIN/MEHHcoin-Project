@@ -1,0 +1,101 @@
+eth setup
+
+Genesis
+
+----------------------------------------------------------------------------------------------
+{
+  "config": {
+    "chainId": 1888,
+    "homesteadBlock": 0,
+    "eip150Block": 0,
+    "eip155Block": 0,
+    "eip158Block": 0,
+    "byzantiumBlock": 0,
+    "constantinopleBlock": 0,
+    "petersburgBlock": 0,
+    "clique": {
+      "period": 5,
+      "epoch": 30000
+    }
+  },
+  "difficulty": "1",
+  "gasLimit": "8000000",
+  "extradata": "0x0000000000000000000000000000000000000000000000000000000000000000b7A0Dd618558d652357A5F035471e41755BF658E0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+  "alloc": {
+    "0xb7A0Dd618558d652357A5F035471e41755BF658E": { "balance": "230000000000000000000000000" }
+  }
+}
+----------------------------------------------------------------------------------------------
+bootnode start :::--
+
+bootnode -genkey bootnode.key // one time need to keep enode id same for bootstrapping
+
+geth account new --datadir .mehh  // one time
+
+0xb7A0Dd618558d652357A5F035471e41755BF658E/eth123@new1 //one time
+
+geth init --datadir .mehh ./genesis/mehhchain.json  // one time
+
+bootnode:
+echo eth123@new1 | nohup geth --datadir .mehh --networkid 1888 --port 30303 --syncmode 'full' --nat extip:35.182.207.97 --unlock 0xb7A0Dd618558d652357A5F035471e41755BF658E --mine --nodekey ./bootnode/bootnode.key &
+
+geth attach .mehh/geth.ipc --exec admin.nodeInfo.enr
+enr:-J24QHIvGhAoDwJJzCDshDhPWV88V2aWLL7BWKDOgsIm_XZ1eehqjBueXwmqm3ks7sB_0mGaofeF8KIFtTO9c5_kodwFg2V0aMfGhFblsiSAgmlkgnY0gmlwhCO2z2GJc2VjcDI1NmsxoQKRCUoL4VqG0jncYVWMGsDUNkrTms-hGGfR5mzTlcg9koRzbmFwwIN0Y3CCdl-DdWRwgnZf
+
+
+geth attach .mehh/geth.ipc
+admin.nodeInfo
+personal.unlockAccount(eth.coinbase)
+personal.lockAccount(eth.coinbase)
+
+geth attach .mehh/geth.ipc --exec admin.nodeInfo.enode
+"enode://91094a0be15a86d239dc61558c1ac0d4364ad39acfa11867d1e66cd395c83d92643fa31e7cd3313b76a46dd8aa5e8a7149e7fb99a119382fe7f82411f0b735d0@35.182.207.97:30303"
+
+bootnode end :::--
+----------------------------------------------------------------------------------------------
+peer1 start :::--
+
+bootnode -genkey ./bootnode/bootnode.key
+
+geth account new --datadir .mehh // one time
+0xa9Aff74d7694e62fA2436879A61eA5f4ec58F1A3/eth123@new2 // one time
+
+geth init --datadir .mehh ./genesis/mehhchain.json // one time
+
+echo eth123@new2 | nohup geth --datadir .mehh --networkid 1888 --port 30305 --syncmode 'full' --nat extip:3.97.97.1 --unlock 0xa9Aff74d7694e62fA2436879A61eA5f4ec58F1A3 --mine --nodekey .bootnode/bootnode.key &
+
+
+geth attach .mehh/geth.ipc --exec admin.nodeInfo.enr
+enr:-J24QOFZSiib-JofGQKg2DYyUAtan5ehgBKtz4_-W8YLoy1yAjWwk99Ke0zodFJgzCIPgJKw6J4iwOBuZCJtkOxeCCMCg2V0aMfGhFblsiSAgmlkgnY0gmlwhANhYQGJc2VjcDI1NmsxoQIJiwLgycC9dTwIPZtokuB8bChPx3ukkRjaotbS1jWerYRzbmFwwIN0Y3CCdmGDdWRwgnZh
+
+geth attach .mehh/geth.ipc
+admin.nodeInfo
+"enode://098b02e0c9c0bd753c083d9b6892e07c6c284fc77ba49118daa2d6d2d6359ead8576645b738f759974f73e2850091d39351816d16cf2c47d57fe4e4b4c557dde@3.97.97.1:30305"
+
+personal.unlockAccount(eth.coinbase)
+personal.lockAccount(eth.coinbase)
+
+peer1 end :::--
+----------------------------------------------------------------------------------------------
+RPC Node start :::--
+
+mkdir rpcnode // one time
+cd rpcnode  // one time
+
+copy genensis file to rpcnode/genesis // one time
+geth init --datadir .mehh ./genesis/mehhchain.json // one time
+
+nohup geth --datadir .mehh --networkid 1888 --port 30306 --nat extip:3.97.97.1 --syncmode 'fast' --http --http.addr "0.0.0.0" --http.corsdomain "*" --bootnodes "enode://098b02e0c9c0bd753c083d9b6892e07c6c284fc77ba49118daa2d6d2d6359ead8576645b738f759974f73e2850091d39351816d16cf2c47d57fe4e4b4c557dde@3.97.97.1:30305" &
+
+geth attach .mehh/geth.ipc --exec admin.nodeInfo.enr
+
+geth attach .mehh/geth.ipc
+admin.nodeInfo
+
+RPC Node end :::--
+----------------------------------------------------------------------------------------------
+
+sample transactions:
+ eth.sendTransaction({from : "0xb7a0dd618558d652357a5f035471e41755bf658e", to : "0x2bF5383A662d5222fb8723218b5a7ebeD51BCe41", value : "194800000000000000000000000", gas : "50000", gasPrice : "1"})
+
+ eth.getTransaction("0x3c0925538471873435bdbb0fc33f07329ebd24be6cdfaa5fb7e9f0ddecf293ec")
